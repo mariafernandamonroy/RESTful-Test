@@ -106,6 +106,53 @@ class WidgetRestControllerTest {
                 .andExpect(jsonPath("$.version", is(1)));
     }
 
+    @Test
+    @DisplayName("PUT /rest/widget/{id}")
+    void testUpdateWidget() throws Exception {
+        // Setup our mocked service
+       Optional<Widget> widget1 = Optional.of(new Widget(1L,"New Widget", "This is my widget",1));
+        Widget widget2 = new Widget(1L, "New Widget2", "This is my widget", 1);
+        doReturn(widget1).when(service).findById(1L);
+        doReturn(widget2).when(service).save(any());
+
+        // Execute the PUT request
+        mockMvc.perform(put("/rest/widget/{id}",1L)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(widget1))
+                .header(HttpHeaders.IF_MATCH,"1"))
+                .andExpect(status().isOk())
+
+                // Validate the returned fields
+                .andExpect(jsonPath("$.name", is("New Widget2")));
+    }
+
+    @Test
+    @DisplayName("PUT NotFound /rest/widget/{id}")
+    void testUpdateWidgetNotFound() throws Exception {
+        // Setup our mocked service
+        Optional<Widget> widget1 = Optional.of(new Widget(1L,"New Widget", "This is my widget",1));
+        doReturn(Optional.empty()).when(service).findById(1L);
+
+        // Execute the PUT request
+        mockMvc.perform(put("/rest/widget/{id}",1L)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(widget1))
+                .header(HttpHeaders.IF_MATCH,"1"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("GET /rest/widget/{id}")
+    void testGetById() throws Exception {
+        // Setup our mocked service
+        Optional<Widget> widget1 = Optional.of(new Widget(1L,"New Widget", "This is my widget",1));
+        doReturn(widget1).when(service).findById(1L);
+
+        // Execute the PUT request
+        mockMvc.perform(get("/rest/widget/{id}",1L))
+                .andExpect(status().isOk());
+    }
+
 
     static String asJsonString(final Object obj) {
         try {
